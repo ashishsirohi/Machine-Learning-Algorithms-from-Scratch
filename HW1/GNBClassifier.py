@@ -35,7 +35,7 @@ class GNB(object):
 
 
 	def separateByLabels(self, dataset):
-		lables = {}
+		labels = {}
 		for i in range(len(dataset)):
 			currRow = dataset[i]
 			if (currRow[-1] not in labels):
@@ -57,7 +57,7 @@ class GNB(object):
 		del summaryList[-1]
 		return summaryList
 
-	def summarizeDatasetByClass(self, dataset):
+	def summarizeDatasetByLabels(self, dataset):
 		lables = self.separateByLabels(dataset)
 		summaryDict = {}
 		for label, value in lables.iteritems():
@@ -72,14 +72,14 @@ class GNB(object):
 		probabilities = {}
 		for label, labelSummary in summaryDict.iteritems():
 			probabilities[label] = 1
-			for i in range(len(classSummaries)):
-				mean, sigma = classSummaries[i]
+			for i in range(len(labelSummary)):
+				mu, sigma = labelSummary[i]
 				x = inputList[i]
-				probabilities[classValue] *= self.calculateProbability(x, mean, sigma)
+				probabilities[label] *= self.calculateProbability(x, mu, sigma)
 		return probabilities
 
-	def predict(self, summaries, inputList):
-		probabilities = self.ProbabilityPerClass(summaries, inputList)
+	def predict(self, labelSummaries, inputList):
+		probabilities = self.ProbabilityPerClass(labelSummaries, inputList)
 		bestLabel, bestProb = None, -1
 		for classValue, probability in probabilities.iteritems():
 			if bestLabel is None or probability > bestProb:
@@ -87,10 +87,10 @@ class GNB(object):
 				bestLabel = classValue
 		return bestLabel
 
-	def getPredictions(self, summaries, testSet):
+	def getPredictions(self, labelSummaries, testSet):
 		predictions = []
 		for i in range(len(testSet)):
-			result = self.predict(summaries, testSet[i])
+			result = self.predict(labelSummaries, testSet[i])
 			predictions.append(result)
 		return predictions
 
@@ -113,9 +113,9 @@ if __name__ == "__main__":
 			trainingSet = data[i][0]
 			testSet = data[i][1]
 			# prepare model
-			summaries = obj.summarizeByClass(trainingSet)
+			labelSummaries = obj.summarizeDatasetByLabels(trainingSet)
 			# test model
-			predictions = obj.getPredictions(summaries, testSet)
+			predictions = obj.getPredictions(labelSummaries, testSet)
 			accuracy = obj.getAccuracy(testSet, predictions)
 
 			#print j
