@@ -1,5 +1,8 @@
 import csv, random, math
-class GNB(object):
+import numpy as np
+import matplotlib.pyplot as plt
+
+class ProcessData(object):
 	def loadData(self, file):
 		lines = csv.reader(open(file, "rb"))
 		dataset = list(lines)
@@ -34,6 +37,7 @@ class GNB(object):
 		return result
 
 
+class GNB(object):
 	def separateByLabels(self, dataset):
 		labels = {}
 		for i in range(len(dataset)):
@@ -49,7 +53,10 @@ class GNB(object):
 
 	def sigma(self, nums):
 		avg = self.mu(nums)
-		variance = sum([pow(x-avg,2) for x in nums])/float(len(nums)-1)
+		try:
+			variance = sum([pow(x-avg,2) for x in nums])/float(len(nums)-1)
+		except:
+			variance = sum([pow(x-avg,2) for x in nums])/float(len(nums))
 		return math.sqrt(variance)
 
 	def summarizeDatasetByAttributes(self, dataset):
@@ -101,30 +108,100 @@ class GNB(object):
 				correct += 1
 		return (correct/float(len(testSet))) * 100.0
 
+
+class LogisticRegression(object):
+	def __init__(self, dataset):
+		self.coeff = np.asarray([0.001 for i in range(len(dataset[0]))])
+		self.eta = 0.001
+		self.epochs = 1000
+
+	def sigmoid(self, x):
+		return 1.0/(1 + math.exp(-1*x))
+
+	def gradientDescent(self, trainingSet):
+		for i in range(self.epochs):
+			delta = []
+			biased_delta = []
+			for data in trainingSet:
+				predicted_output = self.sigmoid(sum(np.multiply(self.coeff[1:], data[:4])) + self.coeff[0])
+
+				delta.append(np.multiply(predicted_output - data[-1], data[:4]))
+				biased_delta.append(predicted_output - data[-1])
+
+			delta_sum = np.sum(delta, axis=0)
+			self.coeff[1:] = self.coeff[1:] - np.multiply(self.eta, delta_sum)
+			self.coeff[0] -= self.eta * sum(biased_delta)
+
+		#print self.coeff
+
+	def predict(self, testSet):
+		error = []
+		for data in testSet:
+			predicted_output = self.sigmoid(sum(np.multiply(self.coeff[1:], data[:4])) + self.coeff[0])
+			error.append(1 if float(round(predicted_output)) != data[-1] else 0)
+
+		total_error = sum(error)
+		#print total_error
+		accuracy = (len(testSet) - total_error) / float(len(testSet)) * 100
+		#print accuracy
+		return accuracy
+
+class PlotData(object):
+	def __init__(self):
+		plt.xlabel("Data Size (in percentage)")
+		plt.ylabel("Accuracy (in percentage)")
+
+	def plotCurve(self, data1, data2, op):
+		xAxis = [(i / 5) for i in data2]
+		plt.plot(data1, xAxis, op)
+	
+	def showCurve(self):
+		plt.show()
+
+
 if __name__ == "__main__":
 	file = 'data_banknote_authentication.csv'
-	obj = GNB()
-	dataset = obj.loadData(file)
-	accuracyList = [0,0,0,0,0,0]
+	pd = ProcessData()
+	dataset = pd.loadData(file)
+	gnb = GNB()
+	lr = LogisticRegression(dataset)
+	accuracyListGNB = [0,0,0,0,0,0]
+	accuracyListLR = [0,0,0,0,0,0]
 	for k in range(5):
-		data = obj.splitDataSetUsingFractions(dataset)
+		data = pd.splitDataSetUsingFractions(dataset)
 		j = 0
 		for i in range(len(data)):
 			trainingSet = data[i][0]
 			testSet = data[i][1]
-			# prepare model
-			labelSummaries = obj.summarizeDatasetByLabels(trainingSet)
-			# test model
-			predictions = obj.getPredictions(labelSummaries, testSet)
-			accuracy = obj.getAccuracy(testSet, predictions)
+			labelSummaries = gnb.summarizeDatasetByLabels(trainingSet)
+			predictions = gnb.getPredictions(labelSummaries, testSet)
+			accuracyGNB = gnb.getAccuracy(testSet, predictions)
 
-			#print j
-			accuracyList[j] += accuracy
+			lr.gradientDescent(trainingSet)
+			accuracyLR = lr.predict(testSet)
+
+
+			accuracyListGNB[j] += accuracyGNB
+			accuracyListLR[j] += accuracyLR
 			j += 1
-			#print('Accuracy: {0}%').format(accuracy)
-	#print accuracyList
+			
 	for k in range(5):
-		print accuracyList[k]/5
+		print accuracyListGNB[k]/5
+
+	print "LR"
+
+	for k in range(5):
+		print accuracyListLR[k]/5
+
+	fractions = [ .01,  .02,  .05,  .1,  .625,  1]
+	plot = PlotData()
+	plot.plotCurve(fractions, accuracyListGNB, "bo-")
+	plot.plotCurve(fractions, accuracyListLR, "rx-")
+	plot.showCurve()
+
+
+
+
  
 
 
