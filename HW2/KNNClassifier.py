@@ -2,6 +2,9 @@ import csv
 import math
 import operator
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics.pairwise import euclidean_distances
+from scipy.spatial import distance
 
 class ProcessData(object):
 	def loadData(self, training_file, test_file):
@@ -22,20 +25,18 @@ class ProcessData(object):
 		return trainingSet, testSet
 
 class KNN(object):
-	def euclideanDistance(self, example1, example2, length):
-		distance = 0
-
-		for i in range(1, length):
-			#print example1[i], example2[i]
-			distance += pow((float(example1[i]) - float(example2[i])), 2)
-
-		return math.sqrt(distance)
+	def euclideanDistance(self, example1, example2):
+		A = example1[1:]
+		B = example2[1:]
+		
+		dist = np.sqrt(np.sum((A-B)**2)) 
+		return dist
 
 	def getKNeighbours(self, trainingSet, testExample, KList):
 		distances = []
 
 		for i in range(len(trainingSet)):
-			currDist = self.euclideanDistance(trainingSet[i], testExample, 785)
+			currDist = self.euclideanDistance(trainingSet[i], testExample)
 			distances.append((trainingSet[i], currDist))
 
 		sortedDict = sorted(distances, key=lambda x: x[1])
@@ -82,7 +83,7 @@ class KNN(object):
 class PlotData(object):
 	def __init__(self):
 		plt.xlabel("K (No of Neighbours)")
-		plt.ylabel("Error Rate (in percentage)")
+		plt.ylabel("Error Rate")
 
 	def plotCurve(self, data1, data2, op):
 		plt.plot(data1, data2, op)
@@ -101,6 +102,12 @@ if __name__=="__main__":
 	pd = ProcessData()
 	trainingSet, testSet = pd.loadData(training_file, test_file)
 
+	trainingSet = np.array(trainingSet)
+	trainingSet = trainingSet.astype(float)
+
+	testSet = np.array(testSet)
+	testSet = testSet.astype(float)
+
 	knn = KNN()
 	predictions = []
 	for example in testSet:
@@ -116,8 +123,8 @@ if __name__=="__main__":
 	for accuracy in accuracyList:
 		TestErrorList.append(1.0 - accuracy)
 
-	print TestErrorList
-	print incorrectLabels
+	print "Test Errors: ", TestErrorList
+	print "No of Incorrect Labels: ", incorrectLabels
 	plot = PlotData()
 	plot.plotCurve(KList, TestErrorList,'ro-')
 	plot.showCurve()
