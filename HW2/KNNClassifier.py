@@ -123,8 +123,14 @@ if __name__=="__main__":
 	for accuracy in accuracyList:
 		TestErrorList.append(1.0 - accuracy)
 
-	print "Test Errors: ", TestErrorList
-	print "No of Incorrect Labels: ", incorrectLabels
+
+	for i in range(len(KList)):
+		print "For K = ", KList[i]
+		print "Test Error: ", TestErrorList[i]
+		print "No of Incorrect Labels: ", incorrectLabels[i]
+		print "---------------------------------------------"
+	#print "Test Errors: ", TestErrorList
+	#print "No of Incorrect Labels: ", incorrectLabels
 	plot = PlotData()
 	plot.plotCurve(KList, TestErrorList,'ro-')
 	plot.showCurve()
