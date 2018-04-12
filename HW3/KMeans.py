@@ -23,6 +23,21 @@ class KMeans(object):
 		dist = np.sqrt(np.sum((A-B)**2)) 
 		return dist
 
+	def handleEmptyClusterCase(self, clusters, k):
+		while len(clusters) != k:
+			clusters.sort(key=lambda s:len(s))
+			tmpDataset = clusters.pop()
+			intial_centroid_indexes = np.random.randint(0, len(tmpDataset), size=2)
+			initial_centroids = []
+			for index in intial_centroid_indexes:
+				initial_centroids.append(tmpDataset[index])
+			newClusters = self.classifyStep(tmpDataset, initial_centroids)
+			for c in newClusters:
+				clusters.append(c)
+
+		return clusters
+
+
 	def classifyStep(self, dataset, centroids):
 		clusters = []
 		for i in range(len(centroids)):
@@ -54,10 +69,17 @@ class KMeans(object):
 		tolerance = 0.0001
 		while i < 1000:
 			clusters = self.classifyStep(dataset, centroids)
-			for c in clusters:
-				if len(c) == 0:
-					print clusters
-					break
+			emptyIndexes = []
+			for i in range(len(clusters)):
+				if len(clusters[i]) == 0:
+					emptyIndexes.append(i)
+
+			for i in emptyIndexes:
+				clusters.pop(i)
+
+			if len(clusters) != k:
+				clusters = self.handleEmptyClusterCase(clusters, k)
+					
 			new_centroids = self.recenterStep(clusters)
 
 			diff = 0
