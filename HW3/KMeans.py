@@ -24,6 +24,7 @@ class KMeans(object):
 		return dist
 
 	def handleEmptyClusterCase(self, clusters, k):
+		#print "Here"
 		while len(clusters) != k:
 			clusters.sort(key=lambda s:len(s))
 			tmpDataset = clusters.pop()
@@ -69,18 +70,17 @@ class KMeans(object):
 		tolerance = 0.0001
 		while i < 1000:
 			clusters = self.classifyStep(dataset, centroids)
-			emptyIndexes = []
+			tmpClusters = []
 			for i in range(len(clusters)):
-				if len(clusters[i]) == 0:
-					emptyIndexes.append(i)
+				if len(clusters[i]) != 0:
+					tmpClusters.append(clusters[i])
 
-			for i in emptyIndexes:
-				clusters.pop(i)
-
-			if len(clusters) != k:
-				clusters = self.handleEmptyClusterCase(clusters, k)
+			if len(tmpClusters) != k:
+				clusters = self.handleEmptyClusterCase(tmpClusters, k)
 					
 			new_centroids = self.recenterStep(clusters)
+
+			#print new_centroids
 
 			diff = 0
 
@@ -90,7 +90,7 @@ class KMeans(object):
 			#print diff
 			error = diff/float(len(centroids))
 
-			print error
+			#print error
 			if error < tolerance:
 				break
 			else:
@@ -115,8 +115,8 @@ class KMeans(object):
 
 class PlotData(object):
 	def __init__(self):
-		plt.xlabel("K (No of Neighbours)")
-		plt.ylabel("Error Rate")
+		plt.xlabel("K (No of Clusters)")
+		plt.ylabel("Potential Function Value")
 
 	def plotCurve(self, data1, data2, op):
 		plt.plot(data1, data2, op)
