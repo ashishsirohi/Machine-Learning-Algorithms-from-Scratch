@@ -1,4 +1,4 @@
-The Pacman Projects
+Machine Learning Algorithms from Scratch
 ===================
 
 ### Intro
@@ -10,5 +10,7 @@ This Rpository contains several Machine Learning Algoritms implemeted from scrat
 Dataset: Included
 ### KNN Classifier
 Dataset: MNIST
-### K MEans Clustering 
+### K Means Clustering 
 Dataset: Inluded 
+
+** More Algorithms like SVM, Matrix Factorization, AdaBoost will be added soon **
